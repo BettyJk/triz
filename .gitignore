@@ -1,0 +1,9 @@
+chunkx.py
+check.py
+agentic_rag.py
+secrets.toml
+openIA.env
+mermaid.py
+*.pdf
+\pdf_chunks
+\triz_env
