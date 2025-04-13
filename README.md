@@ -4,7 +4,7 @@
 
 This app uses the **TRIZ 40 Principles** and the **contradiction matrix** to help engineers and innovators find **creative, real-life solutions** to problems involving tradeoffs or conflicting requirements. It combines classical TRIZ logic with state-of-the-art **LLM analysis** to suggest practical strategies based on your input.
 
-![Streamlit Screenshot](https://placehold.co/600x300?text=App+Screenshot) <!-- Replace this with your actual screenshot -->
+![Streamlit Screenshot](image.png) 
 
 ---
 
