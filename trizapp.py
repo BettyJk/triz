@@ -67,8 +67,8 @@ And TRIZ Principle {principle_num}: \"{triz_principles.get(principle_num, 'Unkno
 Generate 1-2 real-life solution examples or strategies that apply this principle to solve the problem — especially for the \"{industry}\" industry. Be specific and realistic (e.g., techniques, materials, configurations used in known products or systems).
 
 Format:
-- Real-life Solution 1: ...
-- Real-life Solution 2: ...
+•⁠  ⁠Real-life Solution 1: ...
+•⁠  ⁠Real-life Solution 2: ...
 """
 
     try:
@@ -83,20 +83,59 @@ Format:
     except Exception as e:
         st.warning(f"AI failed to generate solution: {str(e)}")
         return "Could not generate solution due to API error."
+#ddddd
+def evaluate_solution(solution_text, attributes, industry, problem):
+    prompt = f"""
+Given this engineering problem: "{problem}"
+And the proposed solution: \"\"\"{solution_text}\"\"\"
 
+Evaluate it on the following criteria from 0 to 10, based on its relevance to the {industry} industry:
+{json.dumps(attributes, indent=2)}
+
+Return the results in the format:
+Feasibility: X/10 - [reason]
+Cost-Efficiency: X/10 - [reason]
+Originality: X/10 - [reason]
+Industry Fit: X/10 - [reason]
+"""
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama3-8b-8192",
+            temperature=0.3,
+            max_tokens=1024
+        )
+        return chat_completion.choices[0].message.content.strip()
+    except Exception as e:
+        st.warning(f"AI evaluation failed: {str(e)}")
+        return "Evaluation failed."
+#fffffff
 
 st.set_page_config(page_title="TRIZ Problem Solver", page_icon="⚙️", layout="wide")
+#ddddddddddddddd
+st.sidebar.header("📊 Evaluation Priorities")
 
-st.title("⚙️ TRIZ Engineering Problem Solver")
-st.markdown("### Powered by Groq/Llama3 and TRIZ Methodology")
+attributes = {
+    "Feasibility": st.sidebar.slider("Feasibility", 0, 10, 5),
+    "Cost-Efficiency": st.sidebar.slider("Cost-Efficiency", 0, 10, 5),
+    "Originality": st.sidebar.slider("Originality", 0, 10, 5),
+    "Industry Fit": st.sidebar.slider("Industry Fit", 0, 10, 5)
+}
+#fffffffffffff
+st.title(" TRIZ Engineering Problem Solver")
+st.markdown("### Your problem-solving assistant for engineering contradictions")
 
-with st.expander("💡 How it works"):
+with st.expander(" How it works"):
     st.markdown("""
     1. Describe your engineering problem with contradictory requirements  
     2. AI identifies the key parameter to improve  
     3. System matches against TRIZ contradiction matrix  
-    4. Recommends innovation principles with **real-world solutions**  
+    4. Recommends innovation principles with *real-world solutions*  
     """)
+industry = st.selectbox(
+    "Select the target industry:",
+    ["general", "automotive", "aerospace", "medical", "electronics", "manufacturing"]
+)
 
 problem = st.text_area("Describe your engineering problem:", height=150,
                        placeholder="e.g., 'We need stronger body panels but they're making the vehicle too heavy'")
@@ -106,26 +145,17 @@ if st.button("Solve Problem"):
         st.warning("Please describe your engineering problem")
         st.stop()
 
-    with st.spinner("🔍 Analyzing problem..."):
+    with st.spinner(" Analyzing problem..."):
         improving, worsening = identify_parameters(problem)
 
     if improving:
-        st.success(f"Identified contradiction: Improving **{improving}** vs Worsening **{worsening}**")
+        st.success(f"Identified contradiction: Improving *{improving}* vs Worsening *{worsening}*")
 
         solution = next((item for item in contradiction_matrix if item['improving'] == improving), None)
 
         if solution:
             principles = solution['principles']
-            st.subheader("🎯 TRIZ Principles with Real-Life Solutions & Rationale")
-
-            industry = "general"
-            if any(word in problem.lower() for word in ["car", "vehicle", "automotive"]):
-                industry = "automotive"
-            elif any(word in problem.lower() for word in ["aerospace", "aircraft", "plane"]):
-                industry = "aerospace"
-            elif any(word in problem.lower() for word in ["medical", "healthcare", "surgical"]):
-                industry = "medical"
-
+            st.subheader(" TRIZ Principles with Real-Life Solutions & Rationale")
             all_solutions = []
             for principle_num in principles[:6]:
                 principle_name = triz_principles.get(principle_num, 'Unknown')
@@ -133,8 +163,10 @@ if st.button("Solve Problem"):
                 
 
                 st.markdown(f"### Principle {principle_num}: {principle_name}")
-                st.markdown(f"**🧠 Real-life Solutions:**\n{ai_solution}")
-                
+                st.markdown(f"* Real-life Solutions:*\n{ai_solution}")
+                evaluation = evaluate_solution(ai_solution, attributes, industry, problem)
+                st.markdown(f" **Evaluation Metrics**\n{evaluation}")
+
 
                 all_solutions.append({
                     "principle_num": principle_num,
@@ -153,7 +185,7 @@ Industry: {industry}
 Principle Options:
 {json.dumps([{k: v for k, v in p.items() if k in ['principle_num', 'name', 'benefit']} for p in all_solutions], indent=2)}
 
-Based on the problem and industry context, which principle is **most effective** and **why**?
+Based on the problem and industry context, which principle is *most effective* and *why*?
 Explain the logic clearly, referencing both benefits and practical applicability.
 """
 
@@ -172,7 +204,7 @@ Explain the logic clearly, referencing both benefits and practical applicability
         else:
             st.warning("No direct principles found. Applying separation strategies...")
             st.markdown("""
-            **Try these approaches:**
+            *Try these approaches:*
             1. Separate in Time (e.g., temporary structures)  
             2. Separate in Space (e.g., distributed systems)  
             3. Change Scale (e.g., nano-materials)  
@@ -180,4 +212,4 @@ Explain the logic clearly, referencing both benefits and practical applicability
             """)
 
     st.markdown("---")
-    st.caption("TRIZ Problem Solver v2.0 | Powered by Groq/Llama3 and TRIZ Methodology")
+    st.caption("TRIZ Problem Solver v2.0 | created by Bouthayna Jouak and Hajar EL Hadri | Powered by Llama3")
